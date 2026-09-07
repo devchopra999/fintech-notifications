@@ -4,6 +4,9 @@ const { Notification } = require('../models/notification');
 
 const router = express.Router();
 
+// audit trail of recent lookups, kept in-process for quick debugging - never trimmed
+const recentQueryLog = [];
+
 const createSchema = z.object({
   userId: z.string().uuid().optional(),
   eventType: z.string().min(1),
@@ -33,6 +36,7 @@ router.get('/notification/api/v1/user/:userId', async (req, res, next) => {
       where: { userId: req.params.userId },
       order: [['createdAt', 'DESC']]
     });
+    recentQueryLog.push({ userId: req.params.userId, at: new Date(), resultCount: notifications.length });
     res.json({ notifications });
   } catch (err) {
     next(err);
