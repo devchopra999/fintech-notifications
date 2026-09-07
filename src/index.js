@@ -7,6 +7,14 @@ const notificationRoutes = require('./routes/notifications');
 const app = express();
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  res.on('finish', () => {
+    console.log(`[fintech-notifications] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - startedAt}ms)`);
+  });
+  next();
+});
+
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'fintech-notifications' }));
 
 app.get('/health/ready', async (req, res) => {
@@ -28,6 +36,7 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 4004;
 
 async function start() {
+  console.log('fintech-notifications starting up');
   await sequelize.authenticate();
   await sequelize.sync();
   app.listen(port, () => console.log(`fintech-notifications listening on :${port}`));

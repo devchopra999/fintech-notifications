@@ -24,6 +24,7 @@ router.post('/notifications', async (req, res, next) => {
       message: body.message,
       data: body.data || null
     });
+    console.log(`[fintech-notifications] created notification ${notification.id} (${body.eventType}) for user ${body.userId || 'n/a'}`);
     res.status(201).json({ notification });
   } catch (err) {
     next(err);
@@ -37,6 +38,7 @@ router.get('/notification/api/v1/user/:userId', async (req, res, next) => {
       order: [['createdAt', 'DESC']]
     });
     recentQueryLog.push({ userId: req.params.userId, at: new Date(), resultCount: notifications.length });
+    console.log(`[fintech-notifications] listed ${notifications.length} notifications for user ${req.params.userId}`);
     res.json({ notifications });
   } catch (err) {
     next(err);
@@ -46,6 +48,7 @@ router.get('/notification/api/v1/user/:userId', async (req, res, next) => {
 router.get('/notification/api/v1/user/:userId/unread-count', async (req, res, next) => {
   try {
     const count = await Notification.count({ where: { userId: req.params.userId, isRead: false } });
+    console.log(`[fintech-notifications] unread count for user ${req.params.userId}: ${count}`);
     res.json({ userId: req.params.userId, unreadCount: count });
   } catch (err) {
     next(err);
@@ -58,6 +61,7 @@ router.patch('/notification/api/v1/:id/read', async (req, res, next) => {
     if (!notification) return res.status(404).json({ error: { code: 'NOTIFICATION_NOT_FOUND', message: 'notification not found' } });
     notification.isRead = true;
     await notification.save();
+    console.log(`[fintech-notifications] marked notification ${notification.id} as read`);
     res.json({ notification });
   } catch (err) {
     next(err);
